@@ -235,14 +235,14 @@ class splunk (
   $log_file = "${splunk::basedir}/var/log/splunk/splunkd.log"
 
   ### Definition of some variables used in the module
-  $bool_absent=any2bool($absent)
-  $bool_disable=any2bool($disable)
-  $bool_disableboot=any2bool($disableboot)
-  $bool_puppi=any2bool($puppi)
-  $bool_monitor=any2bool($monitor)
-  $bool_firewall=any2bool($firewall)
-  $bool_audit_only=any2bool($audit_only)
-  $bool_source_dir_purge=any2bool($source_dir_purge)
+  $bool_absent=$absent
+  $bool_disable=$disable
+  $bool_disableboot=$disableboot
+  $bool_puppi=$puppi
+  $bool_monitor=$monitor
+  $bool_firewall=$firewall
+  $bool_audit_only=$audit_only
+  $bool_source_dir_purge=$source_dir_purge
 
   $manage_package = $splunk::bool_absent ? {
     true  => 'absent',
