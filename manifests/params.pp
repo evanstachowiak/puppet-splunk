@@ -15,6 +15,11 @@ class splunk::params {
 
   ### Application related parameters
 
+  # SSL web.conf parameters
+  $enableSplunkWebSSL             = 'false'
+  $privKeyPath                    = 'etc/auth/splunkweb/privkey.pem'
+  $caCertPath                     = 'etc/auth/splunkweb/cert.pem'
+
   # SSL server.conf parameters
   $enableSplunkdSSL               = 'true'
   $useClientSSLCompression        = 'true'

@@ -191,6 +191,15 @@
 # [*certCreateScript*]
 #   The script for creating and signing server certificates.
 #
+# [*enableSplunkWebSSL*]
+#   Set to true to enable SSL for splunk web server. Defaults to false.
+#
+# [*privKeyPath*]
+#   Path to the SSL key.
+#
+# [*caCertPath*]
+#   Path to the SSL cert.
+#
 #
 # == Examples
 #
@@ -234,6 +243,9 @@ class splunk (
   $audit_only                     = $splunk::params::audit_only,
   $port                           = $splunk::params::port,
   $protocol                       = $splunk::params::protocol,
+  $enableSplunkWebSSL             = $splunk::params::enableSplunkWebSSL,
+  $privKeyPath                    = $splunk::params::privKeyPath,
+  $caCertPath                     = $splunk::params::caCertPath,
   $enableSplunkdSSL               = $splunk::params::enableSplunkdSSL,
   $useClientSSLCompression        = $splunk::params::useClientSSLCompression,
   $useSplunkdClientSSLCompression = $splunk::params::useSplunkdClientSSLCompression,
