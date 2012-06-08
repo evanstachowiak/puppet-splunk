@@ -164,6 +164,33 @@
 #   This is used by monitor, firewall and puppi (optional) components
 #   Can be defined also by the (top scope) variable $splunk_protocol
 #
+# [*enableSplunkdSSL*]
+#   Set to true to enable SSL for intra-Splunk communications. Defaults to true.
+#
+# [*useClientSSLCompression*]
+#   Defaults to true.
+#
+# [*useSplunkdClientSSLCompression*]
+#   Defaults to true.
+#
+# [*supportSSLV3Only*]
+#  Defaults to false. 
+#
+# [*sslKeysfile*]
+#   The certificate for this Splunk instance (created on Splunk start-up 
+#   by default, if the certCreateScript tag is present). The path to the 
+#   keyfile is relative to the caPath setting. If your keyfile is located
+#   outside $SPLUNK_HOME, you must specify the full (absolute) path.
+#
+# [*sslKeysfilePassword*]
+#   The password for the pem file store. Set to password by default.
+#
+# [*caPath*]
+#   The path where the Splunk certificates are stored. Default is $SPLUNK_HOME/etc/auth.
+#
+# [*certCreateScript*]
+#   The script for creating and signing server certificates.
+#
 #
 # == Examples
 #
@@ -178,35 +205,45 @@
 #   Alessandro Franceschi <al@lab42.it/>
 #
 class splunk (
-  $install           = $splunk::params::install,
-  $install_source    = $splunk::params::install_source,
-  $admin_password    = $splunk::params::admin_password,
-  $forward_server    = $splunk::params::forward_server,
-  $monitor_path      = $splunk::params::monitor_path,
-  $template_inputs   = $splunk::params::template_inputs,
-  $template_outputs  = $splunk::params::template_outputs,
-  $template_server   = $splunk::params::template_server,
-  $template_web      = $splunk::params::template_web,
-  $my_class          = $splunk::params::my_class,
-  $source_dir        = $splunk::params::source_dir,
-  $source_dir_purge  = $splunk::params::source_dir_purge,
-  $options           = $splunk::params::options,
-  $absent            = $splunk::params::absent,
-  $disable           = $splunk::params::disable,
-  $disableboot       = $splunk::params::disableboot,
-  $monitor           = $splunk::params::monitor,
-  $monitor_tool      = $splunk::params::monitor_tool,
-  $monitor_target    = $splunk::params::monitor_target,
-  $puppi             = $splunk::params::puppi,
-  $puppi_helper      = $splunk::params::puppi_helper,
-  $firewall          = $splunk::params::firewall,
-  $firewall_tool     = $splunk::params::firewall_tool,
-  $firewall_src      = $splunk::params::firewall_src,
-  $firewall_dst      = $splunk::params::firewall_dst,
-  $debug             = $splunk::params::debug,
-  $audit_only        = $splunk::params::audit_only,
-  $port              = $splunk::params::port,
-  $protocol          = $splunk::params::protocol
+  $install                        = $splunk::params::install,
+  $install_source                 = $splunk::params::install_source,
+  $admin_password                 = $splunk::params::admin_password,
+  $forward_server                 = $splunk::params::forward_server,
+  $monitor_path                   = $splunk::params::monitor_path,
+  $template_inputs                = $splunk::params::template_inputs,
+  $template_outputs               = $splunk::params::template_outputs,
+  $template_server                = $splunk::params::template_server,
+  $template_web                   = $splunk::params::template_web,
+  $my_class                       = $splunk::params::my_class,
+  $source_dir                     = $splunk::params::source_dir,
+  $source_dir_purge               = $splunk::params::source_dir_purge,
+  $options                        = $splunk::params::options,
+  $absent                         = $splunk::params::absent,
+  $disable                        = $splunk::params::disable,
+  $disableboot                    = $splunk::params::disableboot,
+  $monitor                        = $splunk::params::monitor,
+  $monitor_tool                   = $splunk::params::monitor_tool,
+  $monitor_target                 = $splunk::params::monitor_target,
+  $puppi                          = $splunk::params::puppi,
+  $puppi_helper                   = $splunk::params::puppi_helper,
+  $firewall                       = $splunk::params::firewall,
+  $firewall_tool                  = $splunk::params::firewall_tool,
+  $firewall_src                   = $splunk::params::firewall_src,
+  $firewall_dst                   = $splunk::params::firewall_dst,
+  $debug                          = $splunk::params::debug,
+  $audit_only                     = $splunk::params::audit_only,
+  $port                           = $splunk::params::port,
+  $protocol                       = $splunk::params::protocol,
+  $enableSplunkdSSL               = $splunk::params::enableSplunkdSSL,
+  $useClientSSLCompression        = $splunk::params::useClientSSLCompression,
+  $useSplunkdClientSSLCompression = $splunk::params::useSplunkdClientSSLCompression,
+  $supportSSLV3Only               = $splunk::params::supportSSLV3Only,
+  $cipherSuite                    = $splunk::params::cipherSuite,
+  $sslKeysfile                    = $splunk::params::sslKeysFile,
+  $sslKeysfilePassword            = $splunk::params::sslKeysfilePassword,
+  $caCertFile                     = $splunk::params::caCertFile,
+  $caPath                         = $splunk::params::caPath,
+  $certCreateScript               = $splunk::params::certCreateScript
   ) inherits splunk::params {
 
   # Module's internal variables
@@ -287,8 +324,8 @@ class splunk (
   }
 
   $manage_audit = $splunk::bool_audit_only ? {
-    true  => 'all',
-    false => undef,
+    true    => 'all',
+    false   => undef,
   }
 
   $manage_file_replace = $splunk::bool_audit_only ? {
@@ -437,13 +474,13 @@ class splunk (
   if $splunk::template_server {
     file { 'splunk_server.conf':
       ensure  => $splunk::manage_file,
-      path    => "$splunk::basedir/etc/system/local/server.conf",
-      mode    => $splunk::config_file_mode,
-      owner   => $splunk::config_file_owner,
-      group   => $splunk::config_file_group,
-      require => Package['splunk'],
-      notify  => Service['splunk'],
-      content => template($splunk::template_server),
+      path     => "$splunk::basedir/etc/system/local/server.conf",
+      mode     => $splunk::config_file_mode,
+      owner    => $splunk::config_file_owner,
+      group    => $splunk::config_file_group,
+      require  => Package['splunk'],
+      notify   => Service['splunk'],
+      content  => template($splunk::template_server),
       replace => $splunk::manage_file_replace,
       audit   => $splunk::manage_audit,
     }

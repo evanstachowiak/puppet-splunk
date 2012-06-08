@@ -15,6 +15,18 @@ class splunk::params {
 
   ### Application related parameters
 
+  # SSL server.conf parameters
+  $enableSplunkdSSL               = 'true'
+  $useClientSSLCompression        = 'true'
+  $useSplunkdClientSSLCompression = 'true'
+  $supportSSLV3Only               = 'false'
+  $cipherSuite                    = 'ALL:!aNULL:!eNULL:!LOW:!EXP:RC4+RSA:+HIGH:+MEDIUM'
+  $sslKeysfile                    = 'server.pem'
+  $sslKeysfilePassword            = 'password'
+  $caCertFile                     = 'cacert.pem'
+  $caPath                         = '$SPLUNK_HOME/etc/auth'
+  $certCreateScript               = '$SPLUNK_HOME/bin/splunk, createssl, server-cert'
+
   $install = $::splunk_install ? {
     ''      => 'forwarder',               # Default value
     default => $::splunk_install,
