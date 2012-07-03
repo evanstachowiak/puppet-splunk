@@ -555,19 +555,25 @@ class splunk (
   if $splunk::ldaps_cert {
     File['openldap_certs_dir'] -> File['splunk_ldaps_cert']
 
+    $ldaps_cert_dir_mode = '2770'
+    $ldaps_cert_owner    = 'root'
+    $ldaps_cert_group    = 'root'
+    $ldaps_cert_mode     = '0660'
+
     file { 'openldap_certs_dir':
       ensure => $splunk::manage_directory,
       path   => "$splunk::basedir/etc/openldap/certs",
-      owner   => $splunk::config_file_owner,
-      group   => $splunk::config_file_group,
+      mode   => $splunk::ldaps_cert_dir_mode,
+      owner  => $splunk::ldaps_cert_owner,
+      group  => $splunk::ldaps_cert_group,
     }
 
     file { 'splunk_ldaps_cert':
       ensure  => $splunk::manage_file,
       path    => "$splunk::basedir/etc/openldap/certs/${splunk::ldaps_cert}",
-      mode    => $splunk::config_file_mode,
-      owner   => $splunk::config_file_owner,
-      group   => $splunk::config_file_group,
+      mode   => $splunk::ldaps_cert_mode,
+      owner  => $splunk::ldaps_cert_owner,
+      group  => $splunk::ldaps_cert_group,
       require => Package['splunk'],
       notify  => Service['splunk'],
       source  => "puppet:///splunk/${splunk::ldaps_cert}",
