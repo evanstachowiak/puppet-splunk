@@ -16,7 +16,7 @@ class splunk::params {
   ### Application related parameters
 
   # openldap.conf parameters
-  $TLS_REQCERT                    = 'never'
+  $TLS_REQCERT                    = 'allow'
   $TLS_CACERTDIR                  = undef
 
   # SSL web.conf parameters
