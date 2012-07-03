@@ -15,6 +15,10 @@ class splunk::params {
 
   ### Application related parameters
 
+  # openldap.conf parameters
+  $TLS_REQCERT                    = 'never'
+  $TLS_CACERTDIR                  = undef
+
   # SSL web.conf parameters
   $enableSplunkWebSSL             = 'false'
   $privKeyPath                    = 'etc/auth/splunkweb/privkey.pem'
@@ -75,6 +79,16 @@ class splunk::params {
   $template_web = $::splunk_template_web ? {
     ''      => '',                        # Default value
     default => $::splunk_template_web,
+  }
+
+  $template_openldap = $::splunk_template_openldap ? {
+    ''      => '',                        # Default value
+    default => $::splunk_template_openldap,
+  }
+
+  $ldaps_cert = $::splunk_ldaps_cert ? {
+    ''      => '',                        # Default value
+    default => $::splunk_ldaps_cert,
   }
 
   $port = $::splunk_port ? {

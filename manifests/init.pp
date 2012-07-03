@@ -55,6 +55,10 @@
 #   A custom template to use for a custom etc/system/local/web.conf file
 #   The value is used in: content => template($template_web),
 #
+# [*template_openldap*]
+#   A custom template to use for a custom etc/system/openldap/ldap.conf file
+#   The value is used in: content => template($template_openldap),
+#
 # Standard class parameters
 # Define the general class behaviour and customizations
 #
@@ -200,6 +204,16 @@
 # [*caCertPath*]
 #   Path to the SSL cert.
 #
+# [*TLS_REQCERT*]
+#   ldap.conf value for TLS_REQCERT
+#   Valid values: never
+#
+# [*TLS_CACERTDIR*]
+#   Directory where LDAP root cert is stored
+#
+# [*ldaps_cert*]
+#   .pem or .crt LDAP root cert
+#
 #
 # == Examples
 #
@@ -223,6 +237,7 @@ class splunk (
   $template_outputs               = $splunk::params::template_outputs,
   $template_server                = $splunk::params::template_server,
   $template_web                   = $splunk::params::template_web,
+  $template_openldap              = $splunk::params::template_openldap,
   $my_class                       = $splunk::params::my_class,
   $source_dir                     = $splunk::params::source_dir,
   $source_dir_purge               = $splunk::params::source_dir_purge,
@@ -255,7 +270,10 @@ class splunk (
   $sslKeysfilePassword            = $splunk::params::sslKeysfilePassword,
   $caCertFile                     = $splunk::params::caCertFile,
   $caPath                         = $splunk::params::caPath,
-  $certCreateScript               = $splunk::params::certCreateScript
+  $certCreateScript               = $splunk::params::certCreateScript,
+  $TLS_REQCERT                    = $splunk::params::TLS_REQCERT,
+  $TLS_CACERTDIR                  = $splunk::params::TLS_CACERTDIR,
+  $ldaps_cert                     = $splunk::params::ldaps_cert
   ) inherits splunk::params {
 
   # Module's internal variables
@@ -320,6 +338,11 @@ class splunk (
   $manage_file = $splunk::bool_absent ? {
     true    => 'absent',
     default => 'present',
+  }
+
+  $manage_directory = $splunk::bool_absent ? {
+    true    => 'absent',
+    default => 'directory',
   }
 
   # If $splunk::disable == true we dont check splunk on the local system
@@ -508,6 +531,46 @@ class splunk (
       require => Package['splunk'],
       notify  => Service['splunk'],
       content => template($splunk::template_web),
+      replace => $splunk::manage_file_replace,
+      audit   => $splunk::manage_audit,
+    }
+  }
+
+  if $splunk::template_openldap {
+    # LDAP conf template
+    file { 'splunk_openldap.conf':
+      ensure  => $splunk::manage_file,
+      path    => "${splunk::basedir}/etc/openldap/ldap.conf",
+      mode    => $splunk::config_file_mode,
+      owner   => $splunk::config_file_owner,
+      group   => $splunk::config_file_group,
+      require => Package['splunk'],
+      notify  => Service['splunk'],
+      content => template($splunk::template_openldap),
+      replace => $splunk::manage_file_replace,
+      audit   => $splunk::manage_audit,
+    }
+  }
+
+  if $splunk::ldaps_cert {
+    File['openldap_certs_dir'] -> File['splunk_ldaps_cert']
+
+    file { 'openldap_certs_dir':
+      ensure => $splunk::manage_directory,
+      path   => "$splunk::basedir/etc/openldap/certs",
+      owner   => $splunk::config_file_owner,
+      group   => $splunk::config_file_group,
+    }
+
+    file { 'splunk_ldaps_cert':
+      ensure  => $splunk::manage_file,
+      path    => "$splunk::basedir/etc/openldap/certs/${splunk::ldaps_cert}",
+      mode    => $splunk::config_file_mode,
+      owner   => $splunk::config_file_owner,
+      group   => $splunk::config_file_group,
+      require => Package['splunk'],
+      notify  => Service['splunk'],
+      source  => "puppet:///splunk/${splunk::ldaps_cert}",
       replace => $splunk::manage_file_replace,
       audit   => $splunk::manage_audit,
     }
