@@ -553,7 +553,7 @@ class splunk (
   }
 
   if $splunk::ldaps_cert {
-    File['openldap_certs_dir'] -> File['splunk_ldaps_cert']
+    Package['splunk'] -> File['openldap_certs_dir'] -> File['splunk_ldaps_cert']
 
     $ldaps_cert_dir_mode = '2770'
     $ldaps_cert_owner    = 'root'
